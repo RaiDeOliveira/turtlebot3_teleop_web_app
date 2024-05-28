@@ -57,4 +57,4 @@ source install/local_setup.bash
 
 ```bash
 ros2 run turtlebot_movement movement_cli
-```a
+```
