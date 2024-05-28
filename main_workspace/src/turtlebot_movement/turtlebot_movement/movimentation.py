@@ -14,13 +14,16 @@ LIN_VEL_STEP_SIZE = 0.1
 ANG_VEL_STEP_SIZE = 0.5
 
 msg = """
-CLI para controle da movimentação do robô
+Controle da movimentação do robô
 ---------------------------
 Controles:
+
        ↑
   ←    ↓    →
-↑ : mova para frente
-←/→ : mova para a direita/esquerda
+
+↑ : move para frente
+← : move para a esquerda
+→ : move para a direita
 ↓ : pare de andar
 Q : botão de emergência (interromper o programa)
 """
@@ -29,11 +32,17 @@ class Teleop(Node):
     def __init__(self):
         super().__init__('turtlebot3_teleop')
         self.publisher_ = self.create_publisher(Twist, 'cmd_vel', 10)
+        self.subscription = self.create_subscription(Twist, 'cmd_vel', self.listener_callback, 10)
         self.key_pressed = None
         self.last_key_pressed = None
         self.running = True  # To control thread lifecycle
         self.lock = threading.Lock()
         self.mensagem = True
+        self.current_twist = Twist()
+
+    def listener_callback(self, msg):
+        self.get_logger().info(f'I heard: linear_x={msg.linear.x}, angular_z={msg.angular.z}')
+        self.current_twist = msg
 
     def key_poll(self):
         old_attr = termios.tcgetattr(sys.stdin)
@@ -52,11 +61,19 @@ class Teleop(Node):
         finally:
             termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_attr)
 
+    def print_velocities(self):
+        while self.running:
+            with self.lock:
+                print(f'Velocidades atuais: linear_x={self.current_twist.linear.x}, angular_z={self.current_twist.angular.z}')
+            time.sleep(1)
+
     def run(self):
         target_linear_vel = 0.0
         target_angular_vel = 0.0
         key_thread = threading.Thread(target=self.key_poll)
+        print_thread = threading.Thread(target=self.print_velocities)
         key_thread.start()
+        print_thread.start()
 
         try:
             print(msg)
@@ -82,16 +99,19 @@ class Teleop(Node):
                         print("O robô está andando para frente")
                     self.mensagem = False
                     target_linear_vel = min(target_linear_vel + LIN_VEL_STEP_SIZE, BURGER_MAX_LIN_VEL)
+                
                 elif key == '\x1b[D':  # Arrow left
                     if self.mensagem:
                         print("O robô está virando para esquerda")
                     self.mensagem = False
                     target_angular_vel = min(target_angular_vel + ANG_VEL_STEP_SIZE, BURGER_MAX_ANG_VEL)
+              
                 elif key == '\x1b[C':  # Arrow right
                     if self.mensagem:
                         print("O robô está virando para direita")
                     self.mensagem = False
                     target_angular_vel = max(target_angular_vel - ANG_VEL_STEP_SIZE, -BURGER_MAX_ANG_VEL)
+                
                 elif key == '\x1b[B' or key is None:  # Arrow down
                     if not self.mensagem:
                         print("O robô está parando")
@@ -109,6 +129,7 @@ class Teleop(Node):
 
         except KeyboardInterrupt:
             pass
+        
         finally:
             twist = Twist()
             twist.linear.x = 0.0
@@ -116,6 +137,7 @@ class Teleop(Node):
             self.publisher_.publish(twist)
             self.running = False
             key_thread.join()
+            print_thread.join()
 
 def main(args=None):
     rclpy.init(args=args)
