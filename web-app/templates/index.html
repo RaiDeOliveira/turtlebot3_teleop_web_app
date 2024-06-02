@@ -1,117 +1,116 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="utf-8" />
-<style src="index.css"></style>
+    <meta charset="utf-8">
+    <title>Turtlebot3 Burger Teleoperation</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/eventemitter2@6.4.9/lib/eventemitter2.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/roslib@1/build/roslib.min.js"></script>
+    <script type="text/javascript">
+        // Connecting to ROS
+        // -----------------
+        var ros = new ROSLIB.Ros({
+            url : 'ws://localhost:9090'
+        });
 
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/eventemitter2@6.4.9/lib/eventemitter2.min.js"></script>
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/roslib@1/build/roslib.min.js"></script>
+        ros.on('connection', function() {
+            console.log('Connected to websocket server.');
+        });
 
-<script type="text/javascript">
-  // Connecting to ROS
-  // -----------------
+        ros.on('error', function(error) {
+            console.log('Error connecting to websocket server: ', error);
+        });
 
-  var ros = new ROSLIB.Ros({
-    url : 'ws://localhost:9090'
-  });
+        ros.on('close', function() {
+            console.log('Connection to websocket server closed.');
+        });
 
-  ros.on('connection', function() {
-    console.log('Connected to websocket server.');
-  });
+        // Publishing a Topic
+        // ------------------
+        var cmdVel = new ROSLIB.Topic({
+            ros : ros,
+            name : '/cmd_vel',
+            messageType : 'geometry_msgs/Twist'
+        });
 
-  ros.on('error', function(error) {
-    console.log('Error connecting to websocket server: ', error);
-  });
+        var twist = new ROSLIB.Message({
+            linear : {
+                x : 0.0,
+                y : 0.0,
+                z : 0.0
+            },
+            angular : {
+                x : 0.0,
+                y : 0.0,
+                z : 0.0
+            }
+        });
+        
+        function moveForward(){
+            twist.linear.x = 1.0;
+            cmdVel.publish(twist);
+            twist.linear.x = 0.0;
+        };
 
-  ros.on('close', function() {
-    console.log('Connection to websocket server closed.');
-  });
+        function moveBackward(){
+            twist.linear.x = -1.0;
+            cmdVel.publish(twist);
+            twist.linear.x = 0.0;
+        };
 
-  // Publishing a Topic
-  // ------------------
+        function moveTurnLeft(){
+            twist.angular.z = 1.56;
+            cmdVel.publish(twist);
+            twist.angular.z = 0.0;
+        };
 
-  var cmdVel = new ROSLIB.Topic({
-    ros : ros,
-    name : '/cmd_vel',
-    messageType : 'geometry_msgs/Twist'
-  });
+        function moveTurnRight(){
+            twist.angular.z = -1.56;
+            cmdVel.publish(twist);
+            twist.angular.z = 0.0;
+        };
 
-  var twist = new ROSLIB.Message({
-    linear : {
-      x : 0.0,
-      y : 0.0,
-      z : 0.0
-    },
-    angular : {
-      x : 0.0,
-      y : 0.0,
-      z : 0.0
-    }
-  });
-  
-  function moveForward(){
-    twist.linear.x = 1.0
-    cmdVel.publish(twist);
-    twist.linear.x = 0.0
-  };
+        // Topic to receive video frames
+        var videoTopic = new ROSLIB.Topic({
+            ros : ros,
+            name : '/video_frames',
+            messageType : 'sensor_msgs/CompressedImage'
+        });
 
-  function moveBackward(){
-    twist.linear.x = -1.0
-    cmdVel.publish(twist);
-    twist.linear.x = 0.0
-  };
+        var latencyTopic = new ROSLIB.Topic({
+            ros : ros,
+            name : '/video_latency',
+            messageType : 'std_msgs/String'
+        });
 
-  function moveTurnLeft(){
-    twist.angular.z = 1.56
-    cmdVel.publish(twist);
-    twist.angular.z = 0.0
-  };
+        latencyTopic.subscribe(function(message) {
+            var latencyParagraph = document.getElementById('videoLatency');
+            latencyParagraph.innerText = "Latência: " + message.data + "ms";
+        });
 
-  function moveTurnRight(){
-    twist.angular.z = -1.56
-    cmdVel.publish(twist);
-    twist.angular.z = 0.0
-  };
+        // Function to handle incoming video frames
+        videoTopic.subscribe(function(message) {
+            var img = document.getElementById('videoStream');
+            img.src = 'data:image/jpeg;base64,' + message.data;
+        });
 
-  // Topic to receive video frames
-  var videoTopic = new ROSLIB.Topic({
-    ros : ros,
-    name : '/video_frames',
-    messageType : 'sensor_msgs/CompressedImage'
-  });
-
-  // Function to handle incoming video frames
-  videoTopic.subscribe(function(message) {
-    var img = document.getElementById('videoStream');
-    img.src = 'data:image/jpeg;base64,' + message.data;
-  });
-
-  window.onload = function() {
-    // Subscribe to video frames once
-    videoTopic.subscribe();
-  };
-
-</script>
+        window.onload = function() {
+            // Subscribe to video frames once
+            videoTopic.subscribe();
+            latencyTopic.subscribe();
+        };
+    </script>
 </head>
 
 <body>
-  <h1>Teleoperação do Turtlebot3 Burger</h1>
-  <div class="botoes">
-    <button onclick=moveForward()>
-        ↑
-    </button>
-    <button onclick=moveBackward()>
-        ↓
-    </button>
-    <button onclick=moveTurnLeft()>
-        ←
-    </button>
-    <button onclick=moveTurnRight()>
-        →
-    </button>
-
-  </div>
-  <h1>Real-time Video Stream from ROS2 Topic</h1>
-  <img id="videoStream" alt="Video Stream" style="width: 640px; height: 480px;" />
+    <h1>Teleoperação do Turtlebot3 Burger</h1>
+    <img id="videoStream" alt="Video Stream" />
+    <div class="botoes">
+        <button onclick="moveForward()">↑</button>
+        <button onclick="moveBackward()">↓</button>
+        <button onclick="moveTurnLeft()">←</button>
+        <button onclick="moveTurnRight()">→</button>
+    </div>
+    <p id="videoLatency"></p>
 </body>
 </html>
