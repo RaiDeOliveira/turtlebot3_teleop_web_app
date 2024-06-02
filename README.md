@@ -1,4 +1,4 @@
-# Aplicação web para teleoperação do Turtlebot3 Burger
+# Aplicação web para teleoperação do Turtlebot3
 
 Esse repositório armazena:
 
@@ -82,10 +82,6 @@ O script responsável pela execução dessa CLI é baseado em Python e usa bibli
 
 - um **pubblisher**, que publica dados de velocidade para o tópico `cmd_vel` para controlar a velocidade do Turtlebot3 Burger em cada eixo e, portanto, sua movimentação;
 - um **subscriber**, que se subscreve ao tópico `cmd_vel` para receber os dados de velocidade atual do robô e exibí-los ao usuário por meio do terminal.
-
-## Vídeo de demonstração
-
-Você pode assistir um vídeo de demonstração do projeto clicando [aqui](https://youtu.be/0zj6vrRGgRs).
 
 ## Inicialização
 
