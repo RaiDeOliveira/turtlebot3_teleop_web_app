@@ -2,30 +2,35 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Turtlebot3 Burger Teleoperation</title>
+    <title>Turtlebot3 Burger Teleoperação</title>
+    <!-- Importa o arquivo CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
+    <!-- Importa as bibliotecas JavaScript para interação com o ROS -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/eventemitter2@6.4.9/lib/eventemitter2.min.js"></script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/roslib@1/build/roslib.min.js"></script>
     <script type="text/javascript">
-        // Connecting to ROS
+        // Conectando ao ROS
         // -----------------
         var ros = new ROSLIB.Ros({
             url : 'ws://localhost:9090'
         });
 
+        // Callback para conexão bem-sucedida
         ros.on('connection', function() {
-            console.log('Connected to websocket server.');
+            console.log('Conectado ao servidor websocket.');
         });
 
+        // Callback para erro de conexão
         ros.on('error', function(error) {
-            console.log('Error connecting to websocket server: ', error);
+            console.log('Erro ao conectar ao servidor websocket: ', error);
         });
 
+        // Callback para conexão fechada
         ros.on('close', function() {
-            console.log('Connection to websocket server closed.');
+            console.log('Conexão com o servidor websocket fechada.');
         });
 
-        // Publishing a Topic
+        // Publicando um tópico
         // ------------------
         var cmdVel = new ROSLIB.Topic({
             ros : ros,
@@ -33,6 +38,7 @@
             messageType : 'geometry_msgs/Twist'
         });
 
+        // Mensagem de velocidade inicial
         var twist = new ROSLIB.Message({
             linear : {
                 x : 0.0,
@@ -46,6 +52,7 @@
             }
         });
         
+        // Funções de movimento
         function moveForward(){
             twist.linear.x = 1.0;
             cmdVel.publish(twist);
@@ -70,32 +77,34 @@
             twist.angular.z = 0.0;
         };
 
-        // Topic to receive video frames
+        // Tópico para receber frames de vídeo
         var videoTopic = new ROSLIB.Topic({
             ros : ros,
             name : '/video_frames',
             messageType : 'sensor_msgs/CompressedImage'
         });
 
+        // Tópico para receber latência de vídeo
         var latencyTopic = new ROSLIB.Topic({
             ros : ros,
             name : '/video_latency',
             messageType : 'std_msgs/String'
         });
 
+        // Assina o tópico de latência e atualiza o elemento HTML
         latencyTopic.subscribe(function(message) {
             var latencyParagraph = document.getElementById('videoLatency');
             latencyParagraph.innerText = "Latência: " + message.data + "ms";
         });
 
-        // Function to handle incoming video frames
+        // Função para lidar com frames de vídeo recebidos
         videoTopic.subscribe(function(message) {
             var img = document.getElementById('videoStream');
             img.src = 'data:image/jpeg;base64,' + message.data;
         });
 
         window.onload = function() {
-            // Subscribe to video frames once
+            // Subscreve aos tópicos de vídeo e latência quando a página carrega
             videoTopic.subscribe();
             latencyTopic.subscribe();
         };
