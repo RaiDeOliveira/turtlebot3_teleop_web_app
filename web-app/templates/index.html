@@ -73,6 +73,23 @@
     twist.angular.z = 0.0
   };
 
+  // Topic to receive video frames
+  var videoTopic = new ROSLIB.Topic({
+    ros : ros,
+    name : '/video_frames',
+    messageType : 'sensor_msgs/CompressedImage'
+  });
+
+  // Function to handle incoming video frames
+  videoTopic.subscribe(function(message) {
+    var img = document.getElementById('videoStream');
+    img.src = 'data:image/jpeg;base64,' + message.data;
+  });
+
+  window.onload = function() {
+    // Subscribe to video frames once
+    videoTopic.subscribe();
+  };
 
 </script>
 </head>
@@ -92,6 +109,9 @@
     <button onclick=moveTurnRight()>
         →
     </button>
+
   </div>
+  <h1>Real-time Video Stream from ROS2 Topic</h1>
+  <img id="videoStream" alt="Video Stream" style="width: 640px; height: 480px;" />
 </body>
 </html>
