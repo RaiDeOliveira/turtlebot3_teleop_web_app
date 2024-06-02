@@ -2,9 +2,9 @@
 
 Esse repositório armazena:
 
-1. Uma aplicação web para teleoperação o Turtlebot3 Burger. A aplicação web consiste em uma única página com *transmissão de vídeo capturado por uma câmera acoplada ao Turtlebot3*, *latência da transmissão de vídeo* e *botões para movimentação do robô*.
+1. Uma aplicação web para teleoperação o Turtlebot3 Burger. A aplicação web consiste em uma única página com *transmissão de vídeo capturado por uma câmera acoplada ao Turtlebot3*, *latência da transmissão de vídeo* e *botões para movimentação do robô*. [Clique aqui para ver um vídeo de demonstração](https://youtu.be/91uqqaluQJc).
 
-2. Um pacote ROS2 com um script de CLI para controle da movimentação do Turtlebot3 Burger. A CLI permite que o usuário controle a movimentação do robô por meio das teclas de setas de seu teclado, bem como que o usuário visualize a velocidade do robô em cada eixo em tempo real.
+2. Um pacote ROS2 com um script de CLI para controle da movimentação do Turtlebot3 Burger. A CLI permite que o usuário controle a movimentação do robô por meio das teclas de setas de seu teclado, bem como que o usuário visualize a velocidade do robô em cada eixo em tempo real. [Clique aqui para ver um vídeo de demonstração](https://youtu.be/0zj6vrRGgRs).
 
 # Aplicação web
 
